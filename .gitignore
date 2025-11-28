@@ -1,3 +1,23 @@
+# Python
 venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
 node_modules/
 dist/
+npm-debug.log
+
+# Environment variables
+.env
+
+# OS junk
+.DS_Store
+
+# Optional logs
+logs/
+*.log
+
+# Build artifacts
+*.egg-info/
