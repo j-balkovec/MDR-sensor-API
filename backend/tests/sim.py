@@ -12,7 +12,16 @@ BROKER = "127.0.0.1"
 PORT = 1883
 TOPIC = "sensor/moisture"
 
-DEV_EUI = "ce9c49e5db72508d"
+DEVICES = [
+    "f0a1b2c3d4e5f678",  # Device A (need to run insert_dummy.py)
+]
+
+MIN_RAW = 4000
+MAX_RAW = 8000
+
+device_values = {
+    DEVICES[0]: random.randint(5000, 7000),
+}
 
 def encode_value(val: int) -> str:
     return base64.b64encode(val.to_bytes(2, "big")).decode()
@@ -20,21 +29,28 @@ def encode_value(val: int) -> str:
 client = mqtt.Client()
 client.connect(BROKER, PORT, 60)
 
-print("Sending fake packets...")
-
-val = 6000
+print("Sending multi-device sensor packets...\n")
 
 while True:
-    val += random.randint(-1000, 1000)
-    val = max(4000, min(8000, val))
+    dev = random.choice(DEVICES)
+    current = device_values[dev]
+
+    drift = random.randint(-300, 300)
+    jitter = random.randint(-100, 100)
+    new_val = current + drift + jitter
+
+    new_val = max(MIN_RAW, min(MAX_RAW, new_val))
+    device_values[dev] = new_val
 
     payload = {
-        "devEUI": DEV_EUI,
-        "data": encode_value(val),
+        "devEUI": dev,
+        "data": encode_value(new_val),
         "timestamp": int(time.time())
     }
 
     client.publish(TOPIC, json.dumps(payload))
-    print("Sent:", payload)
 
-    time.sleep(random.uniform(2, 5)) # to simulate irregular readings
+    print(f"Sent -> {dev} | raw={new_val} | ts={payload['timestamp']}")
+
+    sleep_time = random.uniform(1.5, 4.5)
+    time.sleep(sleep_time)
