@@ -1,9 +1,1 @@
-html, body, #root {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  background: #f3f4f6;
-  overflow-x: hidden;   /* only block horizontal scrolling */
-  overflow-y: auto;     /* allow vertical scrolling */
-}
+/* empty */

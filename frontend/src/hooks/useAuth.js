@@ -11,7 +11,9 @@ export default function useAuth() {
     localStorage.setItem("id_token", idToken);
 
     const base64Url = idToken.split(".")[1];
-    const payload = JSON.parse(atob(base64Url.replace(/-/g, "+").replace(/_/g, "/")));
+    const payload = JSON.parse(
+      atob(base64Url.replace(/-/g, "+").replace(/_/g, "/"))
+    );
 
     setUser({
       email: payload.email,
@@ -21,8 +23,9 @@ export default function useAuth() {
   };
 
   const initGoogleLogin = () => {
-    if (!window.google || !window.google.accounts?.id) {
-      console.warn("Google script not loaded yet — try again in a moment");
+    if (!window.google?.accounts?.id) {
+      console.warn("Google script not ready — retrying...");
+      setTimeout(initGoogleLogin, 500);
       return;
     }
 
@@ -30,9 +33,6 @@ export default function useAuth() {
       client_id: GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
     });
-
-    // Opens the Google One-Tap or account chooser popup
-    window.google.accounts.id.prompt();
   };
 
   const logout = () => {
@@ -41,5 +41,9 @@ export default function useAuth() {
     localStorage.removeItem("id_token");
   };
 
-  return { token, user, initGoogleLogin, logout };
+  // Frontend should not determine admin status securely.
+  // Always rely on backend checks.
+  const isAuthenticated = Boolean(token);
+
+  return { token, user, isAuthenticated, initGoogleLogin, logout };
 }

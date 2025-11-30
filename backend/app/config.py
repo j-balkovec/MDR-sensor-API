@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     # Google OAuth
     GOOGLE_CLIENT_ID: str = ""
-    ADMIN_EMAILS: str = ""  # comma-separated list
+    ADMIN_EMAILS: str = ""  # comma-separated string list
 
     # Future JWT support
     SECRET_KEY: str = "CHANGE_ME_NOW"
@@ -56,8 +56,9 @@ ADMIN_API_KEY = settings.ADMIN_API_KEY
 GOOGLE_CLIENT_ID = settings.GOOGLE_CLIENT_ID
 
 # Parse comma-separated admin list -> Python list
-ADMIN_EMAILS = [e.strip() for e in settings.ADMIN_EMAILS.split(",") if e.strip()]
-
+ADMIN_EMAILS = [
+    e.strip() for e in settings.ADMIN_EMAILS.split(",") if e.strip()
+]
 
 def compute_moisture_pct(raw_value: int) -> float:
     if raw_value is None:

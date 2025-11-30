@@ -1,20 +1,15 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  font-weight: 400;
-  color: #111827;
-  background-color: #f3f4f6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
+html, body {
   margin: 0;
+  padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #020617; /* Dark background */
 }
 
 #root {
   width: 100%;
   height: 100%;
+  display: flex;
 }
