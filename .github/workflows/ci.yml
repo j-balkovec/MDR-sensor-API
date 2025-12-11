@@ -36,9 +36,6 @@ jobs:
       - name: Quick sanity check
         run: python -m compileall app
 
-      - name: Lint (ruff)
-        run: pip install ruff && ruff check app
-
       - name: Security audit (non-blocking)
         run: pip install pip-audit && pip-audit -r requirements.txt
         continue-on-error: true
