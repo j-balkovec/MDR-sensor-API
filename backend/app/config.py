@@ -15,8 +15,10 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./mdr_api.db"
 
     # Calibration
-    DRY_VALUE: int = 4000
-    WET_VALUE: int = 8000
+    # WET: 10660, 10661, 10656, 10651, 10652 | avg = 10656
+    # DRY: 12382, 12354, 12352, 12332, 12402 | avg = 12364
+    DRY_VALUE: int = 12364
+    WET_VALUE: int = 10656
 
     # WebSocket Authentication (dashboard)
     WS_API_KEY: str = "unauthorized"
@@ -33,6 +35,7 @@ class Settings(BaseSettings):
     TOKEN_EXPIRE_MINUTES: int = 60
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
 
 
 @lru_cache()
