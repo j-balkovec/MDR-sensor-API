@@ -83,7 +83,7 @@ def api_recent(dev_eui: str, limit: int = 100, db=Depends(get_db)):
     return get_recent_readings(db, dev_eui, limit)
 
 
-# ---- Device Info ----
+# ---- Device Info ----s
 
 @app.get("/api/devices/{dev_eui}")
 def api_device_info(dev_eui: str, db=Depends(get_db)):
@@ -94,22 +94,35 @@ def api_device_info(dev_eui: str, db=Depends(get_db)):
 
 
 # ---- WebSocket for Live Updates ----
-
 @app.websocket("/ws/updates")
 async def websocket_endpoint(websocket: WebSocket):
+    raw = websocket.headers.get("sec-websocket-protocol")
+    print("DEBUG: received protocol =", raw)
 
-    client_key = websocket.headers.get("sec-websocket-protocol")
-    if client_key != WS_API_KEY:
-        await websocket.close(code=1008)
+    if not raw:
+        await websocket.close(code=4401, reason="Missing protocol")
+        return
+
+    protocols = [p.strip() for p in raw.split(",")]
+    print("DEBUG: parsed protocols =", protocols)
+
+    if WS_API_KEY not in protocols:
+        print("DEBUG: WS_API_KEY not found in protocols")
+        await websocket.close(code=4403, reason="Invalid protocol")
         return
 
     await websocket.accept(subprotocol=WS_API_KEY)
-    await ws_manager.connect(websocket)
+    ws_manager.connect(websocket)
     print("[WS] Connected + Authenticated")
 
     try:
         while True:
-            await asyncio.sleep(10)
+            try:
+                msg = await websocket.receive_text()
+                print("DEBUG: received msg:", msg)
+            except Exception:
+                await asyncio.sleep(10)
+
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket)
         print("[WS] Disconnected")
