@@ -8,6 +8,8 @@ import { API_BASE_URL } from "../api/config.js";
 import { ADMIN_KEY } from "../api/config";
 import useAuth from "../hooks/useAuth";
 
+// --- Production URLs behind Apache reverse proxy ---
+export const API_BASE = "https://dev.loralab.org/api";
 const WS_URL = "wss://dev.loralab.org/ws/updates";
 const WS_KEY = "super_secret_api_key";
 
