@@ -4,7 +4,7 @@
 import { useEffect, useState, useRef } from "react";
 import { fetchDevices } from "../api/client";
 import LiveChart from "../components/LiveChart";
-import { API_BASE_URL } from "../api/config.js";
+import { API_BASE } from "../api/config.js";
 import { ADMIN_KEY } from "../api/config";
 import useAuth from "../hooks/useAuth";
 

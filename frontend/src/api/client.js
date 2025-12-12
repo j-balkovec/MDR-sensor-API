@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./config";
+import { API_BASE } from "./config";
 
 export async function fetchDevices() {
   const res = await fetch(`${API_BASE_URL}/api/devices`);
