@@ -48,7 +48,7 @@ export default function Dashboard() {
 
   // Fetch cached history
   const fetchHistory = (dev) => {
-    fetch(`${API_BASE}/api/readings/${dev}?limit=100`)
+    fetch(`${API_BASE}/readings/${dev}?limit=100`)
       .then((res) => res.json())
       .then((rows) => {
         if (!Array.isArray(rows)) return;
@@ -67,7 +67,7 @@ export default function Dashboard() {
   const handleAddDevice = () => {
     if (!newDevEUI.trim()) return;
 
-    fetch(`${API_BASE}/api/device`, {
+    fetch(`${API_BASE}/device`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -112,31 +112,53 @@ export default function Dashboard() {
 
   // WebSocket listener
   useEffect(() => {
-    const ws = new WebSocket(WS_URL, [WS_KEY]);
-    wsRef.current = ws;
+    let ws;
+    let reconnectTimeout;
 
-    ws.onmessage = (evt) => {
-      try {
-        const msg = JSON.parse(evt.data);
-        const dev = msg.dev_eui;
-        const point = {
-          ts: msg.timestamp * 1000,
-          moisture_pct: msg.moisture_pct,
-          raw_value: msg.raw_value,
-        };
+    function connect() {
+      ws = new WebSocket(WS_URL, [WS_KEY]);
+      wsRef.current = ws;
 
-        setDeviceData((prev) => ({
-          ...prev,
-          [dev]: [...(prev[dev] || []).slice(-99), point],
-        }));
+      ws.onopen = () => {
+        console.log("WS connected");
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      };
 
-        if (dev === selectedDevice) setTooltipData(point);
-      } catch (e) {
-        console.error("WS parse:", e);
-      }
-    };
+      ws.onclose = () => {
+        console.warn("WS disconnected, retrying...");
+        reconnectTimeout = setTimeout(connect, 2000);
+      };
 
-    return () => ws.close();
+      ws.onerror = (err) => {
+        console.error("WS error:", err);
+        ws.close();
+      };
+
+      ws.onmessage = (evt) => {
+        try {
+          const msg = JSON.parse(evt.data);
+          const dev = msg.dev_eui;
+
+          const point = {
+            ts: msg.timestamp * 1000,
+            moisture_pct: msg.moisture_pct,
+            raw_value: msg.raw_value,
+          };
+
+          setDeviceData((prev) => ({
+            ...prev,
+            [dev]: [...(prev[dev] || []).slice(-99), point],
+          }));
+
+          if (dev === selectedDevice) setTooltipData(point);
+        } catch (e) {
+          console.error("WS parse:", e);
+        }
+      };
+    }
+
+    connect();
+    return () => ws && ws.close();
   }, [selectedDevice]);
 
   // Styling – Dark Mode Ops Console
@@ -331,7 +353,6 @@ export default function Dashboard() {
         };
     }
   };
-
     return (
       <div style={page}>
         {/* Top-right auth cluster */}
@@ -350,7 +371,7 @@ export default function Dashboard() {
           {selectedDevice && (
             <button
               onClick={() => {
-                const url = `${API_BASE}/api/export/${selectedDevice}`;
+                const url = `${API_BASE}/export/${selectedDevice}`;
                 fetch(url)
                   .then((res) => res.blob())
                   .then((blob) => {
@@ -664,7 +685,7 @@ export default function Dashboard() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    fetch(`${API_BASE}/api/device/${dev.dev_eui}`, {
+                    fetch(`${API_BASE}/device/${dev.dev_eui}`, {
                       method: "DELETE",
                       headers: {
                         Authorization: `Bearer ${token}`,

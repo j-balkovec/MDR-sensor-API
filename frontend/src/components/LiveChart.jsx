@@ -54,7 +54,8 @@ export default function LiveChart({ data }) {
             type="number"
             scale="time"
             domain={["auto", "auto"]}
-            tickFormatter={(ts) => new Date(ts).toLocaleTimeString()}
+            tickFormatter={() => ""}
+            interval="preserveStartEnd"
           />
 
           <YAxis domain={[0, 100]} unit="%" />

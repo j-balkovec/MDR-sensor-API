@@ -23,6 +23,8 @@ export default function useAuth() {
   };
 
   const initGoogleLogin = () => {
+    console.log("initGoogleLogin was CALLED");
+
     if (!window.google?.accounts?.id) {
       console.warn("Google script not ready — retrying...");
       setTimeout(initGoogleLogin, 500);
@@ -32,6 +34,11 @@ export default function useAuth() {
     window.google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
+    });
+
+    // Force popup every time
+    window.google.accounts.id.prompt({
+      mode: "select_account"
     });
   };
 
