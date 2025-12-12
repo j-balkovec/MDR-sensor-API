@@ -8,7 +8,7 @@ import { API_BASE_URL } from "../api/config.js";
 import { ADMIN_KEY } from "../api/config";
 import useAuth from "../hooks/useAuth";
 
-const WS_URL = "ws://127.0.0.1:8000/ws/updates";
+const WS_URL = "wss://dev.loralab.org/ws/updates";
 const WS_KEY = "super_secret_api_key";
 
 // Seattle time formatter

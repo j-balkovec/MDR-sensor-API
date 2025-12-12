@@ -1,7 +1,12 @@
 fastapi
 uvicorn
-sqlalchemy
+pydantic
+pydantic-core
 paho-mqtt
 python-dotenv
-pydantic>=2.0
+sqlalchemy
+pandas
+google-auth
+google-auth-oauthlib
 pydantic-settings
+python-jose
