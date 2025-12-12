@@ -8,8 +8,6 @@ import { API_BASE } from "../api/config.js";
 import { ADMIN_KEY } from "../api/config";
 import useAuth from "../hooks/useAuth";
 
-// --- Production URLs behind Apache reverse proxy ---
-export const API_BASE = "https://dev.loralab.org/api";
 const WS_URL = "wss://dev.loralab.org/ws/updates";
 const WS_KEY = "super_secret_api_key";
 
@@ -50,7 +48,7 @@ export default function Dashboard() {
 
   // Fetch cached history
   const fetchHistory = (dev) => {
-    fetch(`${API_BASE_URL}/api/readings/${dev}?limit=100`)
+    fetch(`${API_BASE}/api/readings/${dev}?limit=100`)
       .then((res) => res.json())
       .then((rows) => {
         if (!Array.isArray(rows)) return;
@@ -69,7 +67,7 @@ export default function Dashboard() {
   const handleAddDevice = () => {
     if (!newDevEUI.trim()) return;
 
-    fetch(`${API_BASE_URL}/api/device`, {
+    fetch(`${API_BASE}/api/device`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -352,7 +350,7 @@ export default function Dashboard() {
           {selectedDevice && (
             <button
               onClick={() => {
-                const url = `${API_BASE_URL}/api/export/${selectedDevice}`;
+                const url = `${API_BASE}/api/export/${selectedDevice}`;
                 fetch(url)
                   .then((res) => res.blob())
                   .then((blob) => {
@@ -666,7 +664,7 @@ export default function Dashboard() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    fetch(`${API_BASE_URL}/api/device/${dev.dev_eui}`, {
+                    fetch(`${API_BASE}/api/device/${dev.dev_eui}`, {
                       method: "DELETE",
                       headers: {
                         Authorization: `Bearer ${token}`,

@@ -1,12 +1,12 @@
 import { API_BASE } from "./config";
 
 export async function fetchDevices() {
-  const res = await fetch(`${API_BASE_URL}/api/devices`);
-  return res.json(); // now array of objects, not strings
+  const res = await fetch(`${API_BASE}/devices`);
+  return res.json();
 }
 
 export async function addDevice(payload) {
-  const res = await fetch(`${API_BASE_URL}/api/device`, {
+  const res = await fetch(`${API_BASE}/device`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -15,7 +15,7 @@ export async function addDevice(payload) {
 }
 
 export async function updateDevice(devEui, payload) {
-  const res = await fetch(`${API_BASE_URL}/api/device/${devEui}`, {
+  const res = await fetch(`${API_BASE}/device/${devEui}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -24,13 +24,13 @@ export async function updateDevice(devEui, payload) {
 }
 
 export async function deleteDevice(devEui) {
-  const res = await fetch(`${API_BASE_URL}/api/device/${devEui}`, {
+  const res = await fetch(`${API_BASE}/device/${devEui}`, {
     method: "DELETE",
   });
   return res.json();
 }
 
 export async function fetchHistory(devEui) {
-  const res = await fetch(`${API_BASE_URL}/api/readings/${devEui}?limit=100`);
+  const res = await fetch(`${API_BASE}/readings/${devEui}?limit=100`);
   return res.json();
 }
