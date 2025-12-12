@@ -135,10 +135,5 @@ Dashboard expects `VITE_API_BASE_URL` and a WebSocket at `ws://localhost:8000/ws
 - No migrations; `docker-compose.yml` empty.
 
 ## Future Improvements / TODOs
-
-- Align on a single auth flow and remove duplicate device routes.
-- Fix WebSocket handshake to one documented auth mechanism.
-- Correct CSV export path/table.
-- Wire `MQTT_TOPIC` env or remove; add logging/metrics.
-- Return `is_admin` to frontend and surface admin-only UI controls.
-- Add migrations (Alembic), WebSocket/MQTT tests, and a working compose stack.
+- Imporove the frontend
+- Allow for entering constants (`DRY` and `WET`) upon adding a sensor node through the UI
