@@ -1,6 +1,6 @@
 # app/routers/auth.py
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, status
 from google.oauth2 import id_token
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 def create_access_token(data: dict, expires_minutes: int | None = None) -> str:
     to_encode = data.copy()
-    expire = datetime.now(datetime.timezone.utc) + timedelta(
+    expire = datetime.now(timezone.utc) + timedelta(
         minutes=expires_minutes or settings.TOKEN_EXPIRE_MINUTES
     )
     to_encode.update({"exp": expire})
@@ -25,6 +25,9 @@ def create_access_token(data: dict, expires_minutes: int | None = None) -> str:
         algorithm="HS256",
     )
 
+@router.options("/google")
+def google_options():
+    return {}
 
 @router.post("/google", response_model=TokenOut)
 def google_login(payload: GoogleAuthIn):
@@ -49,11 +52,7 @@ def google_login(payload: GoogleAuthIn):
         )
 
     # 2) Decide if this user is an admin
-    allowed_admins = {
-        e.strip().lower()
-        for e in (ADMIN_EMAILS or "").split(",")
-        if e.strip()
-    }
+    allowed_admins = {e.lower() for e in ADMIN_EMAILS}
     is_admin = email.lower() in allowed_admins
 
     # 3) Create our own JWT
@@ -70,6 +69,9 @@ def google_login(payload: GoogleAuthIn):
         name=idinfo.get("name"),
         picture=idinfo.get("picture"),
     )
+
+    print("GOOGLE EMAIL =", email)
+    print("ADMIN_EMAILS =", ADMIN_EMAILS)
 
     return TokenOut(
         access_token=token,

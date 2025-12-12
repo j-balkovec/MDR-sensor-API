@@ -1,56 +1,95 @@
-import { useState } from "react";
-import { GOOGLE_CLIENT_ID } from "../api/config";
+import { useState, useRef } from "react";
+import { API_BASE, GOOGLE_CLIENT_ID } from "../api/config.js";
 
 export default function useAuth() {
-  const [token, setToken] = useState(() => localStorage.getItem("id_token"));
+  const [token, setToken] = useState(() =>
+    localStorage.getItem("access_token")
+  );
+
   const [user, setUser] = useState(null);
 
-  const handleCredentialResponse = (response) => {
+  const [isAdmin, setIsAdmin] = useState(() => {
+    const saved = localStorage.getItem("is_admin");
+    return saved === "true";
+  });
+
+  const googleInitialized = useRef(false);
+
+  const handleCredentialResponse = async (response) => {
+    console.log("GOOGLE CALLBACK FIRED", response);
+
+    window.google.accounts.id.cancel();
+
     const idToken = response.credential;
-    setToken(idToken);
-    localStorage.setItem("id_token", idToken);
 
-    const base64Url = idToken.split(".")[1];
-    const payload = JSON.parse(
-      atob(base64Url.replace(/-/g, "+").replace(/_/g, "/"))
-    );
+    try {
+      const res = await fetch(`${API_BASE}/auth/google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id_token: idToken }),
+      });
 
-    setUser({
-      email: payload.email,
-      name: payload.name,
-      picture: payload.picture,
-    });
+      if (!res.ok) {
+        throw new Error("Backend auth failed");
+      }
+
+      const data = await res.json();
+
+      // Persist auth state
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("is_admin", data.is_admin ? "true" : "false");
+
+      setToken(data.access_token);
+      setUser(data.user);
+      setIsAdmin(data.is_admin);
+
+      console.log("AUTH COMPLETE", data);
+    } catch (err) {
+      console.error("Auth error:", err);
+    }
   };
 
   const initGoogleLogin = () => {
     console.log("initGoogleLogin was CALLED");
 
     if (!window.google?.accounts?.id) {
-      console.warn("Google script not ready — retrying...");
       setTimeout(initGoogleLogin, 500);
       return;
     }
 
-    window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleCredentialResponse,
-    });
+    if (!googleInitialized.current) {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        use_fedcm: false,
+      });
 
-    // Force popup every time
-    window.google.accounts.id.prompt({
-      mode: "select_account"
-    });
+      googleInitialized.current = true;
+      console.log("Google initialized (FedCM disabled)");
+    }
+
+    window.google.accounts.id.prompt({ mode: "select_account" });
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem("id_token");
+    setIsAdmin(false);
+
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("is_admin");
   };
 
-  // Frontend should not determine admin status securely.
-  // Always rely on backend checks.
   const isAuthenticated = Boolean(token);
 
-  return { token, user, isAuthenticated, initGoogleLogin, logout };
+  return {
+    token,
+    user,
+    isAdmin,
+    isAuthenticated,
+    initGoogleLogin,
+    logout,
+  };
 }

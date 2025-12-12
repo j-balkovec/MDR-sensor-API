@@ -10,7 +10,8 @@ import datetime
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, APIRouter
+from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from pydantic import BaseModel
@@ -42,22 +43,11 @@ async def lifespan(app: FastAPI):
     yield
     mqtt_client.loop_stop()
 
-
-
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(readings.router)
-
-origins = ["http://localhost:5173", "http://localhost:3000"]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Pydantic model for device creation/update
 class DeviceCreate(BaseModel):
@@ -152,6 +142,33 @@ def system_status(db=Depends(get_db)):
 
     return status_report
 
+# ---- Export CSV -----
+
+export_router = APIRouter()
+
+@export_router.get("/export/{dev_eui}")
+def export_csv(dev_eui: str, limit: int = 1000, db=Depends(get_db)):
+    rows = get_recent_readings(db, dev_eui, limit)
+
+    if not rows:
+        raise HTTPException(status_code=404, detail="No readings found")
+
+    csv_lines = ["timestamp,moisture_pct,raw_value"]
+    for r in rows:
+        ts = r.timestamp.isoformat() if hasattr(r, "timestamp") else r["timestamp"]
+        moisture = r.moisture_pct if hasattr(r, "moisture_pct") else r["moisture_pct"]
+        raw = r.raw_value if hasattr(r, "raw_value") else r["raw_value"]
+        csv_lines.append(f"{ts},{moisture},{raw}")
+
+    csv_string = "\n".join(csv_lines)
+
+    return PlainTextResponse(
+        content=csv_string,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={dev_eui}_readings.csv"}
+    )
+
+app.include_router(export_router, prefix="/api")
 
 # ---- Device CRUD Routes ----
 
