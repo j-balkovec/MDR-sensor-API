@@ -1,4 +1,4 @@
-export const API_BASE_URL = "https://dev.loralab.org";
+export const API_BASE = "https://dev.loralab.org/api";
 
 export const ADMIN_KEY = "change_admin_key";
 
